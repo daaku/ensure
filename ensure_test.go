@@ -74,14 +74,14 @@ func TestExtras(t *testing.T) {
 		typ{Answer: 46},
 	)
 	c.Equal(t, `unexpected error: foo
-(map[string]int) (len=1) {
- (string) (len=6) "answer": (int) 42
+map[string]int{
+  "answer": 42,
 }
-(string) (len=3) "baz"
-(int) 43
-(float64) 44.45
-(ensure.typ) {
- Answer: (int) 46
+"baz"
+43
+44.45
+ensure.typ{
+  Answer: 46,
 }`)
 }
 
@@ -92,13 +92,13 @@ func TestDeepEqualStruct(t *testing.T) {
 	DeepEqual(&c, actual, expected)
 	c.Equal(t, `expected these to be equal:
 ACTUAL:
-(ensure.typ) {
- Answer: (int) 41
+ensure.typ{
+  Answer: 41,
 }
 
 EXPECTED:
-(ensure.typ) {
- Answer: (int) 42
+ensure.typ{
+  Answer: 42,
 }`)
 }
 
@@ -107,10 +107,10 @@ func TestDeepEqualString(t *testing.T) {
 	DeepEqual(&c, "foo", "bar")
 	c.Equal(t, `expected these to be equal:
 ACTUAL:
-(string) (len=3) "foo"
+"foo"
 
 EXPECTED:
-(string) (len=3) "bar"`)
+"bar"`)
 }
 
 func TestNotDeepEqualStruct(t *testing.T) {
@@ -118,8 +118,8 @@ func TestNotDeepEqualStruct(t *testing.T) {
 	v := typ{Answer: 42}
 	NotDeepEqual(&c, v, v)
 	c.Equal(t, `expected two different values, but got the same:
-(ensure.typ) {
- Answer: (int) 42
+ensure.typ{
+  Answer: 42,
 }`)
 }
 
@@ -132,21 +132,21 @@ func TestUnexpectedNilErr(t *testing.T) {
 func TestNilString(t *testing.T) {
 	var c capture
 	Nil(&c, "foo")
-	c.Equal(t, "expected nil value but got: (string) (len=3) \"foo\"")
+	c.Equal(t, "expected nil value but got: \"foo\"")
 }
 
 func TestNilInt(t *testing.T) {
 	var c capture
 	Nil(&c, 1)
-	c.Equal(t, "expected nil value but got: (int) 1")
+	c.Equal(t, "expected nil value but got: 1")
 }
 
 func TestNilStruct(t *testing.T) {
 	var c capture
 	Nil(&c, typ{})
 	c.Equal(t, `expected nil value but got:
-(ensure.typ) {
- Answer: (int) 0
+ensure.typ{
+  Answer: 0,
 }`)
 }
 
@@ -199,13 +199,14 @@ func TestSameElementsLengthDifference(t *testing.T) {
 	SameElements(&c, []int{1, 2}, []interface{}{1})
 	c.Equal(t, `expected same elements but found slices of different lengths:
 ACTUAL:
-([]int) (len=2 cap=2) {
- (int) 1,
- (int) 2
+[]int{
+  1,
+  2,
 }
+
 EXPECTED
-([]interface {}) (len=1 cap=1) {
- (int) 1
+[]interface {}{
+  1,
 }`)
 }
 
@@ -214,17 +215,18 @@ func TestSameElementsRepeated(t *testing.T) {
 	SameElements(&c, []int{1, 2}, []interface{}{1, 1})
 	c.Equal(t, `missing expected element:
 ACTUAL:
-([]int) (len=2 cap=2) {
- (int) 1,
- (int) 2
+[]int{
+  1,
+  2,
 }
+
 EXPECTED:
-([]interface {}) (len=2 cap=2) {
- (int) 1,
- (int) 1
+[]interface {}{
+  1,
+  1,
 }
 MISSING ELEMENT
-(int) 1`)
+1`)
 }
 
 func TestFalse(t *testing.T) {
@@ -252,10 +254,10 @@ func TestPanicDeepEqualFailure(t *testing.T) {
 	}()
 	c.Contains(t, `expected these to be equal:
 ACTUAL:
-(int) 2
+2
 
 EXPECTED:
-(int) 1`)
+1`)
 }
 
 func TestMultiLineStringContains(t *testing.T) {
@@ -264,6 +266,7 @@ func TestMultiLineStringContains(t *testing.T) {
 	c.Equal(t, `expected substring was not found:
 EXPECTED SUBSTRING:
 bar
+
 ACTUAL:
 foo
 baz`)

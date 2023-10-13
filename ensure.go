@@ -3,7 +3,7 @@
 //
 // The various functions here show a useful error message automatically
 // including identifying source location. They additionally support arbitary
-// arguments which will be printed using the spew library.
+// arguments which will be printed using the litter library.
 package ensure
 
 import (
@@ -13,7 +13,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/davecgh/go-spew/spew"
+	"github.com/sanity-io/litter"
 )
 
 // Fataler defines the minimal interface necessary to trigger a Fatal when a
@@ -55,8 +55,13 @@ func (c cond) String() string {
 		fmt.Fprintf(&b, c.Format, c.FormatArgs...)
 	}
 	if len(c.Extra) != 0 {
-		fmt.Fprint(&b, "\n")
-		fmt.Fprint(&b, tsdump(c.Extra...))
+		b.WriteRune('\n')
+		for i, v := range c.Extra {
+			b.WriteString(litter.Sdump(v))
+			if i != len(c.Extra)-1 {
+				b.WriteRune('\n')
+			}
+		}
 	}
 	return b.String()
 }
@@ -111,8 +116,8 @@ func DeepEqual(t Fataler, actual, expected interface{}, a ...interface{}) {
 	if !reflect.DeepEqual(actual, expected) {
 		fatal(cond{
 			Fataler:    t,
-			Format:     "expected these to be equal:\nACTUAL:\n%s\nEXPECTED:\n%s",
-			FormatArgs: []interface{}{spew.Sdump(actual), tsdump(expected)},
+			Format:     "expected these to be equal:\nACTUAL:\n%s\n\nEXPECTED:\n%s",
+			FormatArgs: []interface{}{litter.Sdump(actual), litter.Sdump(expected)},
 			Extra:      a,
 		})
 	}
@@ -126,7 +131,7 @@ func NotDeepEqual(t Fataler, actual, expected interface{}, a ...interface{}) {
 		fatal(cond{
 			Fataler:    t,
 			Format:     "expected two different values, but got the same:\n%s",
-			FormatArgs: []interface{}{tsdump(actual)},
+			FormatArgs: []interface{}{litter.Sdump(actual)},
 			Extra:      a,
 		})
 	}
@@ -135,7 +140,7 @@ func NotDeepEqual(t Fataler, actual, expected interface{}, a ...interface{}) {
 // Nil ensures v is nil.
 func Nil(t Fataler, v interface{}, a ...interface{}) {
 	helper(t).Helper()
-	vs := tsdump(v)
+	vs := litter.Sdump(v)
 	sp := " "
 	if strings.Contains(vs[:len(vs)-1], "\n") {
 		sp = "\n"
@@ -205,7 +210,7 @@ func StringContains(t Fataler, s, substr string, a ...interface{}) {
 
 		// use multi line output if either string contains newlines
 		if strings.Contains(s, "\n") || strings.Contains(substr, "\n") {
-			format = "expected substring was not found:\nEXPECTED SUBSTRING:\n%s\nACTUAL:\n%s"
+			format = "expected substring was not found:\nEXPECTED SUBSTRING:\n%s\n\nACTUAL:\n%s"
 		}
 
 		fatal(cond{
@@ -239,8 +244,8 @@ func SameElements(t Fataler, actual, expected interface{}, extra ...interface{})
 	if len(actualSlice) != len(expectedSlice) {
 		fatal(cond{
 			Fataler:    t,
-			Format:     "expected same elements but found slices of different lengths:\nACTUAL:\n%s\nEXPECTED\n%s",
-			FormatArgs: []interface{}{tsdump(actual), tsdump(expected)},
+			Format:     "expected same elements but found slices of different lengths:\nACTUAL:\n%s\n\nEXPECTED\n%s",
+			FormatArgs: []interface{}{litter.Sdump(actual), litter.Sdump(expected)},
 			Extra:      extra,
 		})
 	}
@@ -256,8 +261,8 @@ outer:
 		}
 		fatal(cond{
 			Fataler:    t,
-			Format:     "missing expected element:\nACTUAL:\n%s\nEXPECTED:\n%s\nMISSING ELEMENT\n%s",
-			FormatArgs: []interface{}{tsdump(actual), tsdump(expected), tsdump(a)},
+			Format:     "missing expected element:\nACTUAL:\n%s\n\nEXPECTED:\n%s\nMISSING ELEMENT\n%s",
+			FormatArgs: []interface{}{litter.Sdump(actual), litter.Sdump(expected), litter.Sdump(a)},
 			Extra:      extra,
 		})
 	}
@@ -274,8 +279,8 @@ func PanicDeepEqual(t Fataler, expected interface{}, a ...interface{}) {
 	if !reflect.DeepEqual(actual, expected) {
 		fatal(cond{
 			Fataler:    t,
-			Format:     "expected these to be equal:\nACTUAL:\n%s\nEXPECTED:\n%s",
-			FormatArgs: []interface{}{spew.Sdump(actual), tsdump(expected)},
+			Format:     "expected these to be equal:\nACTUAL:\n%s\n\nEXPECTED:\n%s",
+			FormatArgs: []interface{}{litter.Sdump(actual), litter.Sdump(expected)},
 			Extra:      a,
 		})
 	}
@@ -290,9 +295,4 @@ func toInterfaceSlice(v interface{}) []interface{} {
 		ret[i] = rv.Index(i).Interface()
 	}
 	return ret
-}
-
-// tsdump is Sdump without the trailing newline.
-func tsdump(a ...interface{}) string {
-	return strings.TrimSpace(spew.Sdump(a...))
 }
