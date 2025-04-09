@@ -6,7 +6,7 @@ jobs:
     steps:
     - uses: actions/setup-go@v5
       with:
-        go-version: latest
+        go-version: stable
     - uses: actions/checkout@v2
     - run: go get -t ./...
     - run: go build -v ./...
